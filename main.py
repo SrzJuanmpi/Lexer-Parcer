@@ -50,25 +50,6 @@ tokens = (
 )
 
 
-def t_TEXTO(t):
-  r'([^<>]+)'
-
-
-def t_ENTERO(t):
-  r'\d+'
-  return t
-
-
-def t_ENCODING(t):
-  r'encoding="(UTF|utf)\-\d+"(|\ +)\?>'
-  return t
-
-
-def t_VERSION(t):
-  r'version="\d+\.\d+"'
-  return t
-
-
 def t_OARTICLE(t):
   r'<article>'
   return t
@@ -81,6 +62,16 @@ def t_CARTICLE(t):
 
 def t_XML(t):
   r'<\?xml'
+  return t
+
+
+def t_VERSION(t):
+  r'version="\d+\.\d+"'
+  return t
+
+
+def t_ENCODING(t):
+  r'encoding="(UTF|utf)-\d+"\?>'
   return t
 
 
@@ -254,12 +245,21 @@ def t_CIMGOBJ(t):
   return t
 
 
+def t_TEXTO(t):
+  r'([^<>]+)'
+
+
+def t_ENTERO(t):
+  r'\d+'
+  return t
+
+
 t_ignore = " \t"
 
 
 def t_newline(t):
   r'\n+'
-  t.lexer.lineno += t.value.count("\n")
+  t.lexer.lineno += len(t.value)
 
 
 def t_error(t):
@@ -270,9 +270,11 @@ def t_error(t):
 # Construccion del lexer
 lexer = lex.lex()
 data = '''
-
 <surname> jashasj </surname>
+
 <?xml version="1.0" encoding="UTF-8"?>
+jekjkfjkdfjksf
+<author>
 
 '''
 
