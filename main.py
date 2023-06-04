@@ -69,6 +69,44 @@ tokens = (
   'CITEMLIST',
   'OLISTITEM',
   'CLISTITEM',
+
+  # Tokens para datos
+  'OADD',
+  'CADD',
+  'OCR',
+  'CCR',
+  'OSTREET',
+  'CSTREET',
+  'OCITY',
+  'CCITY',
+  'OSTATE',
+  'CSTATE',
+  'OPHONE',
+  'CPHONE',
+  'OEMAIL',
+  'CEMAIL',
+  'ODATE',
+  'CDATE',
+  'OYEAR',
+  'CYEAR',
+  'OHOLDER',
+  'CHOLDER',
+
+  # Tokens para secciones
+  'OSIMPSECT',
+  'CSIMPSECT',
+  'OSECT',
+  'CSECT',
+
+   # Tokens para parrafos
+  'OPARA',
+  'CPARA',
+  'OSIMPARA',
+  'CSIMPARA',
+
+  # Tokens para abstract
+  'OABS',
+  'CABS', 
 )
 
 
@@ -325,6 +363,154 @@ def t_OLISTITEM(t):
 def t_CLISTITEM(t):
   r'</listitem>'
   return t
+
+  
+def t_OADD(t):
+  r'<address>'
+  return t
+
+
+def t_CADD(t):
+  r'</address>'
+  return t
+
+
+def t_OCR(t):
+  r'<copyright>'
+  return t
+  
+
+def t_CCR(t):
+  r'</copyright>'
+  return t
+
+
+def t_OSTREET(t):
+  r'<street>'
+  return t 
+
+  
+def t_CSTREET(t):
+  r'</street>'
+  return t
+
+
+def t_OCITY(t):
+  r'<city>'
+  return t
+
+def t_CCITY(t):
+  r'</city>'
+  return t  
+
+def t_OSTATE(t):
+  r'<state>'
+  return t  
+
+
+def t_CSTATE(t):
+  r'</state>'
+  return t 
+
+
+def t_OPHONE(t):
+  r'<phone>'
+  return t 
+
+
+def t_CPHONE(t):
+  r'</phone>'
+  return t 
+  
+
+def t_OEMAIL(t):
+  r'<email>'
+  return t 
+
+  
+def t_CEMAIL(t):
+  r'</email>'
+  return t 
+
+
+def t_ODATE(t):
+  r'<date>'
+  return t 
+
+
+def t_CDATE(t):
+  r'</date>'
+  return t 
+
+
+def t_OYEAR(t):
+  r'<year>'
+  return t 
+
+
+def t_CYEAR(t):
+  r'</year>'
+  return t 
+
+  
+def t_OHOLDER(t):
+  r'<holder>'
+  return t 
+
+
+def t_CHOLDER(t):
+  r'</holder>'
+  return t   
+
+
+def t_OSIMPSECT(t):
+  r'<simplesect>'
+  return t   
+
+
+def t_CSIMPSECT(t):
+  r'</simplesect>'
+  return t
+
+
+def t_OSECT(t):
+  r'<section>'
+  return t
+
+
+def t_CSECT(t):
+  r'</section>'
+  return t 
+
+
+def t_OPARA(t):
+  r'<para>'
+  return t  
+
+
+def t_CPARA(t):
+  r'</para>'
+  return t 
+
+
+def t_OSIMPARA(t):
+  r'<simpara>'
+  return t 
+
+
+def t_CSIMPARA(t):
+  r'</simpara>'
+  return t 
+
+
+def t_OABS(t):
+  r'<abstract>'
+  return t 
+
+
+def t_CABS(t):
+  r'</abstract>'
+  return t 
 
 
 def t_TEXTO(t):
