@@ -47,6 +47,28 @@ tokens = (
   'CVIDOBJ',
   'OIMGOBJ',
   'CIMGOBJ',
+  
+  # Tokens para el enfásis
+	'OEMPHASIS',
+	'CEMPHASIS',
+
+# Tokens para comentarios
+	'OCOMMENT',
+	'CCOMMENT',
+
+# Tokens para título
+	'OTITLE',
+	'CTITLE',
+
+# Tokens para important
+	'OIMPORTANT',
+	'CIMPORTANT',
+
+# Tokens para listas 
+	'OITEMLIST',
+	'CITEMLIST',
+	'OLISTITEM',
+	'CLISTITEM',
 )
 
 
@@ -243,7 +265,53 @@ def t_OIMGOBJ(t):
 def t_CIMGOBJ(t):
   r'</imageobject>'
   return t
+def t_OEMPHASIS(t):
+		r'<emphasis>'
+		return t
 
+def t_OEMPHASIS(t):				
+  r'</emphasis>'
+  return t
+
+def t_OCOMMENT(t):
+  r'<comment>'
+  return t
+
+def t_CCOMMENT(t):
+  r'</comment>'
+  return t
+
+def t_OTITLE(t):
+  r'<title>'
+  return t
+
+def t_CTITLE(t):
+  r'</title>'
+  return t
+
+def t_OIMPORTANT(t):
+  r'<important>'
+  return t
+
+def t_CIMPORTANT(t):
+  r'</important>'
+  return t
+
+def t_OITEMLIST(t):
+  r'<itemizedlist>'
+  return t
+
+def t_CITEMLIST(t):
+  r'</itemizedlist>'
+  return t
+
+def t_OLISTITEM(t):
+  r'<listitem>'
+  return t
+
+def t_CLISTITEM(t):
+  r'</listitem>'
+  return t
 
 def t_TEXTO(t):
   r'([^<>]+)'
