@@ -1,14 +1,17 @@
 import ply.lex as lex
-'''CHAR', hay que borrar char de la gramatica tambien. Lo de xml no se si esta bien literal copie y pegue ese'''
 
 tokens = (
   'TEXTO',
   'ENTERO',
+  
+  #Tokens para cabecera y article
   'XML',
   'ENCODING',
   'VERSION',
   'OARTICLE',
   'CARTICLE',
+
+  #Tokens para Info
   'OINFO',
   'CINFO',
   'OAUTH',
@@ -548,9 +551,9 @@ jekjkfjkdfjksf
 
 lexer.input(data)
 
-# Tokenize
+# Tokenización
 while True:
   tok = lexer.token()
   if not tok:
-    break  # No more input
+    break  # No hay más entradas
   print(tok.type, tok.value, tok.lineno, tok.lexpos)
