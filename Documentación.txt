@@ -22,10 +22,10 @@ _fragment —-- "#" [a-zA-Z_-]+ // comienza con
 /*----Cabecera y Apertura de article----*/
 INICIO --- PROLOG ART | ART
 PROLOG --- <?xml version= “_int . _int” encoding= “_char” ?>
-ART --- <article> IN_ART </article>
+ART --- <article> IN_ART_SECT </article>
 
 /*----Contenido de article----*/
-IN_ART --- INFO CUERPO | TITLE CUERPO | INFO TITLE CUERPO |
+IN_ART_SECT --- INFO CUERPO | TITLE CUERPO | INFO TITLE CUERPO |
 INFO CUERPO SECTION | TITLE CUERPO SECTION
 
 /*----Cuerpo del documento----*/
@@ -78,7 +78,7 @@ HOLDER --- <holder> CUERPO3 </holder>
 SECTION --- SECT | SIMPSECT
 SIMPSECT --- <simplesect> IN_SIMPSECT </simplesect> | <simplesect>
 IN_SIMPSECT </simplesect> SIMPSECT//preguntar
-SECT --- <section> IN_SECT </section> | <section> IN_SECT
+SECT --- <section> IN_ART_SECT </section> | <section> IN_SECT
 </section> SECTION
 
 /*----Párrafo----*/
