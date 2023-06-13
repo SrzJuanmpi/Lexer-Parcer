@@ -1,0 +1,147 @@
+Gramática
+CONSIDERACIONES:
+Token Terminal --> _nombre
+No terminal --> NOMBRE
+String literal -> nombre
+
+/*----Tokens Terminales----*/
+#text --- [a-zA-Z][a-zA-Z0-9]*
+_int --- [0-9]*
+_url --- _protocol _dom _port _route _fragment |
+_protocol _dom _route _fragment |
+_protocol _dom _route |
+_protocol _dom _port |
+_protocol _dom
+_protocol —-- [a-z]* "://" // termina en '://'
+_dom —-- [a-zA-Z_.-]+
+_port —-- ":" [0-9]* // comienza con ':'
+_route —-- "/"[a-zA-Z./_-]+
+_fragment —-- "#" [a-zA-Z_-]+ // comienza con
+'#'
+
+/*----Cabecera y Apertura de article----*/
+INICIO --- PROLOG ART | ART
+PROLOG --- <?xml version= “_int . _int” encoding= “_char” ?>
+ART --- <article> IN_ART </article>
+
+/*----Contenido de article----*/
+IN_ART --- INFO CUERPO | TITLE CUERPO | INFO TITLE CUERPO |
+INFO CUERPO SECTION | TITLE CUERPO SECTION
+
+/*----Cuerpo del documento----*/
+CUERPO --- ITEMLIST | IMPORTANT | PARA | SIMPARA | ADD | MO |TABLE
+| COMMENT | ABS | ITEMLIST CUERPO | IMPORTANT CUERPO|PARA CUERPO|
+SIMPARA CUERPO| ADD CUERPO| MO CUERPO|TABLE CUERPO| COMMENT
+CUERPO| ABS CUERPO|
+
+/*----Cuerpos (Contenido de cierto elementos)----*/
+CUERPO2 --- #texto | EMPHASIS | LINK | EMAIL | AUTH | COMMENT
+|#texto IN_PARA| EMPHASIS CUERPO2| LINK CUERPO2| EMAIL CUERPO2|
+AUTH CUERPO2| COMMENT CUERPO2
+CUERPO3 --- #texto| EMPHASIS | LINK | COMMENT | #texto CUERPO3 |
+EMPHASIS CUERPO3 | LINK CUERPO3 | COMMENT CUERPO3
+
+/*----info----*/
+INFO --- <info> IN_INFO </info>
+IN_INFO --- MO | ABS | ADD | AUTH | DATE | CR | TITLE
+
+/*Autor*/
+AUTH --- <author> IN_AUTH </author> | <author> IN_AUTH
+</author> AUTH
+IN_AUTH --- FN | SN
+
+/*Nombre y Apellido*/
+FN --- <firstname> CUERPO3 </firstname> | <firstname> CUERPO3
+</firstname> IN_AUTH |
+SN --- <surname> CUERPO3 </surname>| <surname> CUERPO3
+</surname> AUTH
+
+/*----Datos----*/
+ADD --- <address> IN_ADD </address>
+IN_ADD --- #texto | STREET | CITY | STATE | PHONE | EMAIL |
+#texto IN_ADD| STREET IN_ADD| CITY IN_ADD|STATE IN_ADD| PHONE
+IN_ADD| EMAIL IN_ADD
+CR --- <copyright> IN_YEAR IN_HOLDER </copyright> | <copyright>
+IN_YEAR </copyright>
+IN_YEAR --- YEAR | YEAR IN_YEAR
+IN_HOLDER --- HOLDER | HOLDER IN_HOLDER
+STREET --- <street> CUERPO3 </street>
+CITY --- <city> CUERPO3 </city>
+STATE --- <state> CUERPO3 </state>
+PHONE --- <phone> CUERPO3 </phone>
+EMAIL --- <email> CUERPO3 </email>
+DATE --- <date> CUERPO3 </date>
+YEAR --- <year> CUERPO3 </year>
+HOLDER --- <holder> CUERPO3 </holder>
+
+/*----Secciones----*/
+SECTION --- SECT | SIMPSECT
+SIMPSECT --- <simplesect> IN_SIMPSECT </simplesect> | <simplesect>
+IN_SIMPSECT </simplesect> SIMPSECT//preguntar
+SECT --- <section> IN_SECT </section> | <section> IN_SECT
+</section> SECTION
+
+/*----Párrafo----*/
+PARAGRAPH --- PARA PARAGRAPH| SIMPARA PARAGRAPH | PARA | SIMPARA
+PARA --- <para> IN_PARA </para>
+IN_PARA --- ITEMLIST | IMPORTANT | ADD | MO | TABLE | #texto
+|EMPHASIS | LINK | EMAIL | AUTH | COMMENT | #texto
+IN_PARA|EMPHASIS IN_PARA| LINK IN_PARA| EMAIL IN_PARA| AUTH
+IN_PARA|COMMENT IN_PARA | ITEMLIST IN_PARA | IMPORTANT IN_PARA
+|ADD IN_PARA | MO IN_PARA | TABLE IN_PARA
+SIMPARA --- <simpara> CUERPO2 </simpara>
+
+/*----Resumen----*/
+ABS --- <abstract> TITLE PARAGRAPH </abstract> | <abstract>
+PARAGRAPH </abstract>
+
+/*----Important----*/
+IMPORTANT --- <important> TITLE CUERPO </important> | <important>
+CUERPO </important>
+
+/*----Listas----*/
+ITEMLIST --- <itemizedlist> LIST_ITEM </itemizedlist>
+LIST_ITEM --- <listitem> CUERPO </listitem> LIST_ITEM | <listitem>
+CUERPO </listitem>
+
+/*----Tabla----*/
+TABLE --- <informaltable> TABLE_MO TGROUP </informaltable>
+TABLE_MO --- MO TABLE_MO | MO
+TGROUP --- <tgroup> TBODY </tgroup> TGROUP | <tgroup> THEAD TBODY
+</tgroup> TGROUP | <tgroup> TFOOT TBODY </tgroup> TGROUP |
+<tgroup> THEAD TFOOT TBODY </tgroup> TGROUP |<tgroup> TBODY
+</tgroup> | <tgroup> THEAD TBODY </tgroup> | <tgroup> TFOOT TBODY
+</tgroup> | <tgroup> THEAD TFOOT TBODY </tgroup>
+THEAD --- <thead> FILA </thead>
+TFOOT --- <tfoot> FILA </tfoot>
+TBODY --- <tbody> FILA </tbody>
+FILA --- <row> ENTRY </row> | <row> ENTRYTBL </row> | <row> ENTRY
+</row> FILA | <row> ENTRYTBL </row> FILA
+ENTRY --- <entry> IN_ENTRY </entry>
+IN_ENTRY --- #texto| ITEMLIST|IMPORTANT|PARA| SIMPARA | MO
+|COMMENT| ABT | #texto ENTRY |ITEMLIST ENTRY |IMPORTANT ENTRY|
+PARA ENTRY | SIMPARA ENTRY |MO ENTRY |COMMENT ENTRY | ABT ENTRY
+ENTRYTBL --- <entrytbl> TBODY </entrytbl> | <entrytbl> THEAD TBODY
+</entrytbl>
+
+/*----Títulos----*/
+TITLE --- <title> IN_TITLE </title>
+IN_TITLE --- #texto | EMPHASIS | LINK | EMAIL | #texto TITLE |
+EMPHASIS TITLE | LINK TITLE| EMAIL TITLE
+
+/*----Elementos de texto----*/
+EMPHASIS --- <emphasis> CUERPO2 </emphasis>
+COMMENT --- <comment> CUERPO2 </comment>
+
+/*----Multimedia----*/
+LINK --- <link xlink:href= _url />
+IMG --- <imagedata fileref= _url />
+VDO --- <videodata fileref= _url />
+MO --- <mediaobject> INFO IN_MO </mediaobject> | <mediaobject>
+IN_MO </mediaobject>
+IN_MO --- VDOBJECT | IMGOBJECT | VDOBEJECT IN_MO | IMGOBJECT
+IN_MO
+VDOBEJECT --- <videoobject> INFO VDO </videoobject>| <videoobject>
+VDO </videoobject>
+IMGOBJECT --- <imageobject> INFO IMG </imageobject> | <imageobject>
+IMG </imageobject
