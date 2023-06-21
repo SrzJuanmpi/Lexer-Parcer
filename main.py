@@ -3,7 +3,7 @@ import ply.lex as lex
 tokens = (
   'TEXTO',
   'ENTERO',
-  
+
   #Tokens para cabecera y article
   'XML',
   'ENCODING',
@@ -44,6 +44,9 @@ tokens = (
   'LINK',
   'IMG',
   'VDO',
+  'FREFU',
+  'FREFA'
+  'VREF',
   'OMO',
   'CMO',
   'OVIDOBJ',
@@ -101,7 +104,7 @@ tokens = (
   'OSECT',
   'CSECT',
 
-   # Tokens para parrafos
+  # Tokens para parrafos
   'OPARA',
   'CPARA',
   'OSIMPARA',
@@ -109,22 +112,54 @@ tokens = (
 
   # Tokens para abstract
   'OABS',
-  'CABS', 
+  'CABS',
 )
+
+b_title = True
+file = ""
 
 
 def t_OARTICLE(t):
   r'<article>'
+  file.write('''<article>
+  <html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <style>
+        .info {
+            background: rgb(9, 184, 9);
+            color: white;
+            font-size: 8pt;
+            width: 420px;
+            margin: 0px;
+            margin-bottom: auto;
+        }
+
+        .important {
+            background: rgb(237, 27, 24);
+            color: white;
+            width: 420px;
+            margin: 0px;
+            margin-bottom: auto;
+        }
+    </style>
+  </head>
+  <body>''')
   return t
 
 
 def t_CARTICLE(t):
   r'</article>'
+  file.write("""
+</article>
+</body>
+</html>""")
   return t
 
 
 def t_XML(t):
   r'<\?xml'
+  file.write("<!DOCTYPE html>")
   return t
 
 
@@ -140,6 +175,7 @@ def t_ENCODING(t):
 
 def t_OINFO(t):
   r'<info>'
+  file.write("<div class='info'></div>")
   return t
 
 
@@ -264,18 +300,32 @@ def t_URL(t):
 
 
 def t_LINK(t):
-  r'<link xlink:href="{URL}" />'
+  r'<link '
+  return t
+
+
+def t_VREF(t):
+  r'xlink:href="(https|http|ftps|ftp)\://((\.|[A-Z]|[a-z])+(?!-)([ÁÉÍÓÚáéíóú\-\w]+|[0-9]+|%(?!2[46B]))(?<!-))(\.|[A-Z]|[a-z])+(\/[A-Za-z0-9._/]+)?(\#(\w.(?!\.))+)?" />'
   return t
 
 
 def t_IMG(t):
-  r'<imagedata fileref="{URL}" />'
+  r'<imagedata '
   return t
 
 
 def t_VDO(t):
-  r'<videodata fileref="{URL}" />'
+  r'<videodata '
   return t
+
+
+def t_FREFU(t):
+  r'fileref="(https|http|ftps|ftp)\://((\.|[A-Z]|[a-z])+(?!-)([ÁÉÍÓÚáéíóú\-\w]+|[0-9]+|%(?!2[46B]))(?<!-))(\.|[A-Z]|[a-z])+(\/[A-Za-z0-9._/]+)?(\#(\w.(?!\.))+)?" />'
+  return t
+
+
+def t_FREFA(t):
+  r'([^<>]+)/>'
 
 
 def t_OMO(t):
@@ -330,44 +380,62 @@ def t_CCOMMENT(t):
 
 def t_OTITLE(t):
   r'<title>'
+  global b_title
+  if (b_title == True):
+    file.rewrite("<h1>")
+  else:
+    file.rewrite("<h2>")
   return t
 
 
 def t_CTITLE(t):
   r'</title>'
+  global b_title
+  if (b_title == True):
+    file.rewrite("<h1>")
+  else:
+    file.rewrite("<h2>")
+  b_title = False
   return t
 
 
 def t_OIMPORTANT(t):
   r'<important>'
+  file.rewrite(
+    "<div class = 'important' >")  #dejé el important entre comillas simples
   return t
 
 
 def t_CIMPORTANT(t):
   r'</important>'
+  file.rewrite("</div >")
   return t
 
 
 def t_OITEMLIST(t):
   r'<itemizedlist>'
+  file.rewrite("<ul>")
   return t
 
 
 def t_CITEMLIST(t):
   r'</itemizedlist>'
+  file.rewrite("</ul>")
   return t
 
 
 def t_OLISTITEM(t):
   r'<listitem>'
+  file.rewrite("<li>")
   return t
 
 
 def t_CLISTITEM(t):
   r'</listitem>'
+  file.rewrite("</li>")
   return t
 
-  
+
 def t_OADD(t):
   r'<address>'
   return t
@@ -381,7 +449,7 @@ def t_CADD(t):
 def t_OCR(t):
   r'<copyright>'
   return t
-  
+
 
 def t_CCR(t):
   r'</copyright>'
@@ -390,9 +458,9 @@ def t_CCR(t):
 
 def t_OSTREET(t):
   r'<street>'
-  return t 
+  return t
 
-  
+
 def t_CSTREET(t):
   r'</street>'
   return t
@@ -402,73 +470,75 @@ def t_OCITY(t):
   r'<city>'
   return t
 
+
 def t_CCITY(t):
   r'</city>'
-  return t  
+  return t
+
 
 def t_OSTATE(t):
   r'<state>'
-  return t  
+  return t
 
 
 def t_CSTATE(t):
   r'</state>'
-  return t 
+  return t
 
 
 def t_OPHONE(t):
   r'<phone>'
-  return t 
+  return t
 
 
 def t_CPHONE(t):
   r'</phone>'
-  return t 
-  
+  return t
+
 
 def t_OEMAIL(t):
   r'<email>'
-  return t 
+  return t
 
-  
+
 def t_CEMAIL(t):
   r'</email>'
-  return t 
+  return t
 
 
 def t_ODATE(t):
   r'<date>'
-  return t 
+  return t
 
 
 def t_CDATE(t):
   r'</date>'
-  return t 
+  return t
 
 
 def t_OYEAR(t):
   r'<year>'
-  return t 
+  return t
 
 
 def t_CYEAR(t):
   r'</year>'
-  return t 
+  return t
 
-  
+
 def t_OHOLDER(t):
   r'<holder>'
-  return t 
+  return t
 
 
 def t_CHOLDER(t):
   r'</holder>'
-  return t   
+  return t
 
 
 def t_OSIMPSECT(t):
   r'<simplesect>'
-  return t   
+  return t
 
 
 def t_CSIMPSECT(t):
@@ -483,45 +553,47 @@ def t_OSECT(t):
 
 def t_CSECT(t):
   r'</section>'
-  return t 
+  return t
 
 
 def t_OPARA(t):
   r'<para>'
-  return t  
+  return t
 
 
 def t_CPARA(t):
   r'</para>'
-  return t 
+  return t
 
 
 def t_OSIMPARA(t):
   r'<simpara>'
-  return t 
+  return t
 
 
 def t_CSIMPARA(t):
   r'</simpara>'
-  return t 
+  return t
 
 
 def t_OABS(t):
   r'<abstract>'
-  return t 
+  return t
 
 
 def t_CABS(t):
   r'</abstract>'
-  return t 
+  return t
 
 
 def t_TEXTO(t):
   r'([^<>]+)'
+  file.write(t.value)
 
 
 def t_ENTERO(t):
   r'\d+'
+  file.write(t.value)
   return t
 
 
@@ -538,15 +610,91 @@ def t_error(t):
   t.lexer.skip(1)
 
 
+# CONSTRUCCION DEL PARSER
+
+
+def p_sigma(p):
+  '''sigma: XML VERISON ENCODING OARTICLE IN_ART_SECT CARTICLE | OARTICLE IN_ART_SECT CARTICLE'''
+
+
+def p_in_art(p):
+  '''IN_ART_SECT: INFO TITLE CUERPO SECTION | INFO CUERPO | TITLE CUERPO | INFO TITLE CUERPO | INFO CUERPO SECTION | TITLE CUERPO SECTION'''
+
+
+def p_cuerpo(p):
+  '''CUERPO: ITEMLIST | IMPORTANT | PARA | SIMPARA | ADD | MO |TABLE
+| COMMENT | ABS | ITEMLIST CUERPO | IMPORTANT CUERPO|PARA CUERPO|
+SIMPARA CUERPO| ADD CUERPO| MO CUERPO|TABLE CUERPO| COMMENT
+CUERPO| ABS CUERPO'''
+
+
+def p_cuerpo2(p):
+  '''CUERPO2: TEXTO | EMPHASIS | LINK | EMAIL | AUTH | COMMENT
+|TEXTO IN_PARA| EMPHASIS CUERPO2| LINK CUERPO2| EMAIL CUERPO2|
+AUTH CUERPO2| COMMENT CUERPO2'''
+
+
+def p_cuerpo3(p):
+  '''CUERPO3: TEXTO| EMPHASIS | LINK | COMMENT | TEXTO CUERPO3 |
+EMPHASIS CUERPO3 | LINK CUERPO3 | COMMENT CUERPO3'''
+
+
+def p_inf(p):
+  '''INFO: OINFO IN_INFO CINFO'''
+
+
+def p_in_inf(p):
+  '''IN_INFO: MO | ABS | ADD | AUTH | DATE | CR | TITLE | MO IN_INFO
+| ABS IN_INFO | ADD IN_INFO | AUTH IN_INFO | DATE IN_INFO | CR
+IN_INFO | TITLE IN_INFO'''
+
+
+def p_em(p):
+  '''EMPHASIS: OEMPHASIS CUERPO2 CEMPHASIS'''
+
+
+def p_com(p):
+  '''COMMENT: OCOMMENT CUERPO2 CCOMMENT'''
+
+
+def p_title(p):
+  '''TITLE: OTITLE IN_TITLE CTITLE'''
+
+
+def p_in_title(p):
+  '''IN_TITLE: #texto 
+    | EMPHASIS 
+    | LINK 
+    | EMAIL 
+    | #texto IN_TITLE 
+    | EMPHASIS IN_TITLE 
+    | LINK IN_TITLE
+    | EMAIL IN_TITLE '''
+
+
+def p_itemized(p):
+  '''ITEMLIST: OITEMLIST LIST_ITEM CITEMLIST'''
+
+
+def p_li(p):
+  '''LIST_ITEM: OLISTITEM CUERPO CLISTITEM
+    | OLISTITEM CUERPO CLISTITEM LIST_ITEM'''
+
+
+def p_imp(p):
+  '''IMPORTANT: OIMPORTANT TITLE CUERPO CIMPORTANT
+    | OIMPORTANT CUERPO CIMPORTANT'''
+
+
 # Construccion del lexer
 lexer = lex.lex()
 data = '''
-<surname> jashasj </surname>
-
 <?xml version="1.0" encoding="UTF-8"?>
-jekjkfjkdfjksf
-<author>
+<firstname>L¿juandjniuh09089</firstname>
+<surname> Suarez </surname>
+<author></author>
 
+<imagedata fileref="imagenes/boton.gif"/>
 '''
 
 lexer.input(data)
