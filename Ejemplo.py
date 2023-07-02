@@ -379,3 +379,6 @@ ventana.boton_compilar= ttk.Button(text="Compilar", command=copiar, style='W.TBu
 #Boton Exit
 ventana.boton_cerrar= ttk.Button(ventana_principal,text='Exit',command=lambda: ventana_principal.quit(), style='W.TButton',width=20).grid(row=3, column=2,pady=15, columnspan=2)
 ventana_principal.mainloop()
+
+
+  

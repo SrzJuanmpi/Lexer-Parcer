@@ -366,6 +366,34 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "pyqt5"
+version = "5.15.9"
+description = "Python bindings for the Qt cross platform application toolkit"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+PyQt5-Qt5 = ">=5.15.2"
+PyQt5-sip = ">=12.11,<13"
+
+[[package]]
+name = "pyqt5-qt5"
+version = "5.15.2"
+description = "The subset of a Qt installation needed by PyQt5."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "pyqt5-sip"
+version = "12.12.1"
+description = "The sip module support for PyQt5"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "pyseto"
 version = "1.7.0"
 description = "A Python implementation of PASETO/PASERK."
@@ -588,7 +616,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10.0,<3.11"
-content-hash = "a21d78966149d94ab74ce3a52502c52a85bf7a2b3caaa3ae4a29549f92d77917"
+content-hash = "e08b74ae3ee75067d84eb0ee3269e2f4e872b05865682b493095061b6ba8d5f9"
 
 [metadata.files]
 aiohttp = []
@@ -624,6 +652,9 @@ protobuf = []
 pycparser = []
 pycryptodomex = []
 pyflakes = []
+pyqt5 = []
+pyqt5-qt5 = []
+pyqt5-sip = []
 pyseto = []
 python-lsp-jsonrpc = []
 pytoolconfig = []
