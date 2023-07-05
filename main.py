@@ -1,6 +1,8 @@
+# Librerías
 import ply.lex as lex
 import ply.yacc as yacc
 import sys
+import os
 from PyQt5.QtWidgets import (
   QApplication,
   QMainWindow,
@@ -12,11 +14,18 @@ from PyQt5.QtWidgets import (
   QMessageBox,
 )
 from PyQt5.QtGui import QColor, QPalette, QLinearGradient, QFont, QFontDatabase
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
+
+# Variables
+valido = True
+html = ""
+error_messages = []
 
 tokens = (
   "TEXTO",
   # Tokens para cabecera y article
+  "DOC1",
+  "DOC2",
   "XML",
   "ENCODING",
   "VERSION",
@@ -49,8 +58,8 @@ tokens = (
   "OENTRYTBL",
   "CENTRYTBL",
   # Tokens para Elementos Multimedia
-  "URL",
   "LINKO",
+  "URL",
   "IMGO",
   "VDOO",
   "FREF",
@@ -115,28 +124,44 @@ tokens = (
   "CABS",
 )
 
-b_title = True
 aux_entry = 1
-file = ""
+title_section = False
+title_article = False
+title_info = False
+es_imagen = False
+es_video = False
+
+
+def t_DOC1(t):
+  r"<\!DOCTYPE"
+  return t
+
+
+def t_DOC2(t):
+  r"article>"
+  global html
+  html += "<!DOCTYPE html>"
+  return t
 
 
 def t_OARTICLE(t):
   r"<article>"
-  file.write(
-    "<html lang='es'> <head> <meta charset='UTF-8'> <style>. info { background: rgb(9, 184, 9); color: white; font-size: 8pt; width: 420px; margin: 0px; margin-bottom: auto;}.important {background: rgb(237, 27, 24);color: white;width: 420px;margin: 0px; margin-bottom: auto;} </style> </head> <body>"
-  )
+  global html
+  global title_article
+  title_article = True
+  html += "<html lang='es'> <head> <meta charset='UTF-8'> <style> .info { background: rgb(9, 184, 9); color: white; font-size: 8pt; width: 420px; margin: 0px; margin-bottom: auto;}.important {background: rgb(237, 27, 24);color: white;width: 420px;margin: 0px; margin-bottom: auto;} </style> </head> <body>"
   return t
 
 
 def t_CARTICLE(t):
   r"</article>"
-  file.write("</body></html>")
+  global html
+  html += "</body></html>"
   return t
 
 
 def t_XML(t):
   r"<\?xml"
-  # file.write("<!DOCTYPE html>")
   return t
 
 
@@ -152,13 +177,17 @@ def t_ENCODING(t):
 
 def t_OINFO(t):
   r"<info>"
-  file.write("<div class='info'>")
+  global html
+  global title_info
+  title_info = True
+  html += "<div class='info'>"
   return t
 
 
 def t_CINFO(t):
   r"</info>"
-  file.write("</div>")
+  global html
+  html += "</div>"
   return t
 
 
@@ -194,13 +223,15 @@ def t_CSURNAME(t):
 
 def t_OTABLE(t):
   r"<informaltable>"
-  file.write("<table>")
+  global html
+  html += "<table>"
   return t
 
 
 def t_CTABLE(t):
   r"</informaltable>"
-  file.write("</table>")
+  global html
+  html += "</table>"
   return t
 
 
@@ -216,125 +247,157 @@ def t_CTGROUP(t):
 
 def t_OTHEAD(t):
   r"<thead>"
-  file.write("<thead>")
+  global html
+  html += "<thead>"
   return t
 
 
 def t_CTHEAD(t):
   r"</thead>"
-  file.write("</thead>")
+  global html
+  html += "</thead>"
   return t
 
 
 def t_OTFOOT(t):
   r"<tfoot>"
-  file.write("<tfoot>")
+  global html
+  html += "<tfoot>"
   return t
 
 
 def t_CTFOOT(t):
   r"</tfoot>"
-  file.write("</tfoot>")
+  global html
+  html += "</tfoot>"
   return t
 
 
 def t_OTBODY(t):
   r"<tbody>"
-  file.write("<tbody>")
+  global html
+  html += "<tbody>"
   return t
 
 
 def t_CTBODY(t):
   r"</tbody>"
-  file.write("</tbody>")
+  global html
+  html += "</tbody>"
   return t
 
 
 def t_OROW(t):
   r"<row>"
-  file.write("<tr>")
+  global html
+  html += "<tr>"
   return t
 
 
 def t_CROW(t):
   r"</row>"
   global aux_entry
-  aux_entry += 1  # Cuento las filas de la tabla, para la 1er Fila se tendrá un contenido resaltado, las demas ya no...
-  file.write("</tr>")
+  global html
+  # Cuento las filas de la tabla, para la 1er Fila se tendrá un contenido resaltado, las demas ya no...
+  aux_entry += 1
+  html += "</tr>"
   return t
 
 
 def t_OENTRY(t):
   r"<entry>"
   global aux_entry
+  global html
   if aux_entry == 1:
-    file.write("<th>")
+    html += "<th>"
   else:
-    file.write("<td>")
+    html += "<td>"
   return t
 
 
 def t_CENTRY(t):
   r"</entry>"
   global aux_entry
+  global html
   if aux_entry == 1:
-    file.write("</th>")
+    html += "</th>"
   else:
-    file.write("</td>")
+    html += "</td>"
   return t
 
 
 def t_OENTRYTBL(t):
   r"<entrytbl>"
-  file.write("<table>")
+  global html
+  html += "<table>"
   return t
 
 
 def t_CENTRYTBL(t):
   r"</entrytbl>"
-  file.write("</table>")
+  global html
+  html += "</table>"
   return t
 
 
 def t_LINKO(t):
   r"<link"
-  file.write("<html:a")
+  global html
+  html += "<a"
   return t
 
 
 def t_VREF(t):
   r"xlink:href="
-  file.write(" href =")
+  global html
+  html += " href ="
   return t
 
 
 def t_IMGO(t):
   r"<imagedata"
-  file.write("<html:a")
+  global html
+  global es_imagen
+  es_imagen = True
+  html += "<a"
   return t
 
 
 def t_VDOO(t):
   r"<videodata"
-  file.write("<html:a")
+  global html
+  global es_video
+  es_video = True
   return t
 
 
 def t_FREF(t):
   r"fileref="
-  file.write(" fileref=")
+  global html
+  if es_imagen:
+    html += " fileref="
   return t
 
 
 def t_URL(t):
-  r"(https|http|ftps|ftp)\://((\.|[A-Z]|[a-z])+(?!-)([ÁÉÍÓÚáéíóú\-\w]+|[0-9]+)(:[0-9])*(?<!-))(\.|[A-Z]|[a-z])+(\/[A-Za-z0-9._/]+)?\#(\w.(?!\.)+)?/>"
-  file.write(t.value[:-2] + "></html:a>")
+  r"(\"(https|http|ftps|ftp)\://((\.|[A-Z]|[a-z])+(?!-)([ÁÉÍÓÚáéíóú\-\w]+|[0-9]+|:([0-9])*)(?<!-))(\.|[A-Z]|[a-z])+(\/[A-Za-z0-9._/]+)*(\#(\w.(?!\.))+)?) \"/>"
+  global html
+  html += t.value[:-2] + 'target="_blank">¡Haz click aqui!</a>'
   return t
 
 
 def t_FREFA(t):
   r"([^<>]+)/>"
-  file.write(t.value[:-2] + "></html:a>")
+  global html
+  global es_imagen
+  global es_video
+  if es_imagen:
+    html += t.value[:-2] + "><img src=" + t.value[:-2] + "></a>"
+    es_imagen = False
+  else:
+    html += ('<iframe width="560" height="315" src=' + t.value +
+             'frameborder="0" allowfullscreen></iframe>')
+    es_video = False
   return t
 
 
@@ -370,82 +433,100 @@ def t_CIMGOBJ(t):
 
 def t_OEMPHASIS(t):
   r"<emphasis>"
-  file.write("<strong>")
   return t
 
 
 def t_CEMPHASIS(t):
   r"</emphasis>"
-  file.write("</strong>")
   return t
 
 
 def t_OCOMMENT(t):
   r"<comment>"
-  file.write("<!--")
   return t
 
 
 def t_CCOMMENT(t):
   r"</comment>"
-  file.write("-->")
   return t
 
 
 def t_OTITLE(t):
   r"<title>"
-  global b_title
-  if b_title == True:
-    file.rewrite("<h1>")
-  else:
-    file.rewrite("<h2>")
+  global html
+  global title_section
+  global title_article
+  global title_info
+
+  if title_info:
+    html += "<h3>"
+  elif title_section:
+    html += "<h2>"
+  elif title_article:
+    html += "<h1>"
   return t
 
 
 def t_CTITLE(t):
   r"</title>"
-  global b_title
-  if b_title == True:
-    file.rewrite("<h1>")
-  else:
-    file.rewrite("<h2>")
-  b_title = False
+  global html
+  global title_section
+  global title_article
+  global title_info
+
+  if title_info:
+    html += "</h3>"
+    title_info = False
+  elif title_section:
+    html += "</h2>"
+    title_section = False
+  elif title_article:
+    html += "</h1>"
+    title_article = False
   return t
 
 
 def t_OIMPORTANT(t):
   r"<important>"
-  file.rewrite("<div class = 'important' >")
+  global html
+  global title_info
+  title_info = True
+  html += "<div class = 'important' >"
   return t
 
 
 def t_CIMPORTANT(t):
   r"</important>"
-  file.rewrite("</div>")
+  global html
+  html += "</div>"
   return t
 
 
 def t_OITEMLIST(t):
   r"<itemizedlist>"
-  file.rewrite("<ul>")
+  global html
+  html += "<ul>"
   return t
 
 
 def t_CITEMLIST(t):
   r"</itemizedlist>"
-  file.rewrite("</ul>")
+  global html
+  html += "</ul>"
   return t
 
 
 def t_OLISTITEM(t):
   r"<listitem>"
-  file.rewrite("<li>")
+  global html
+  html += "<li>"
   return t
 
 
 def t_CLISTITEM(t):
   r"</listitem>"
-  file.rewrite("</li>")
+  global html
+  html += "</li>"
   return t
 
 
@@ -551,6 +632,8 @@ def t_CHOLDER(t):
 
 def t_OSIMPSECT(t):
   r"<simplesect>"
+  global title_section
+  title_section = True
   return t
 
 
@@ -561,44 +644,48 @@ def t_CSIMPSECT(t):
 
 def t_OSECT(t):
   r"<section>"
-  global b_cierre
-  b_cierre = False
+  global title_section
+  title_section = True
   return t
 
 
 def t_CSECT(t):
   r"</section>"
-  global b_cierre
-  b_cierre = True
   return t
 
 
 def t_OPARA(t):
   r"<para>"
-  file.rewrite("<p>")
+  global html
+  html += "<p>"
   return t
 
 
 def t_CPARA(t):
   r"</para>"
-  file.rewrite("</p>")
+  global html
+  html += "</p>"
   return t
 
 
 def t_OSIMPARA(t):
   r"<simpara>"
-  file.rewrite("<p>")
+  global html
+  html += "<p>"
   return t
 
 
 def t_CSIMPARA(t):
   r"</simpara>"
-  file.rewrite("</p>")
+  global html
+  html += "</p>"
   return t
 
 
 def t_OABS(t):
   r"<abstract>"
+  global title_info
+  title_info = True
   return t
 
 
@@ -609,53 +696,63 @@ def t_CABS(t):
 
 def t_TEXTO(t):
   r"([^<>]+)"
-  # file.write(t.value)
+  global html
+  html += t.value
+  return t
 
 
-t_ignore = " \t"
-
-
-def t_newline(t):
-  r"\n+"
-  t.lexer.lineno += len(t.value)
+t_ignore = " \t" " \n"
 
 
 def t_error(t):
-  print("Illegal character '%s'" % t.value[0])
+  global valido
+  valido = False
+  linea, columna = nro_linea_columna2(t.lexer.lexdata, t)
+  error_message = f"Error léxico: Caracter inesperado '{t.value[0]}' en línea {linea}, posición {columna}"
+  error_messages.append(error_message)
   t.lexer.skip(1)
 
 
-# Construccion del lexer
-lexer = lex.lex()
-with open("prueba.txt", "r") as file:
-  contenido = file.read()
-
-# data = open("prueba.txt", "w")
-
-lexer.input(contenido)
-
-# Tokenización
-while True:
-  tok = lexer.token()
-  if not tok:
-    break  # No hay más entradas
-  print(tok.type, tok.value, tok.lineno, tok.lexpos)
-
-# CONSTRUCCION DEL PARSER
+def nro_linea_columna2(input_text, token):
+  last_cr = input_text.rfind("\n", 0, token.lexpos)
+  if last_cr < 0:
+    last_cr = 0
+  line = input_text.count("\n", 0, token.lexpos) + 1
+  column = token.lexpos - last_cr
+  return line, column
 
 
-def p_sigma(p):
-  """sigma : XML VERSION ENCODING OARTICLE IN_ART_SECT CARTICLE
-    | OARTICLE IN_ART_SECT CARTICLE"""
+# PRODUCCIONES
 
 
-def p_in_art(p):
+def p_E(p):
+  """E : DOC XMLPROLOG ARTICLE
+    | ARTICLE
+    | XMLPROLOG ARTICLE
+    | DOC ARTICLE"""
+
+
+def p_DOC(p):
+  """DOC : DOC1 DOC2"""
+
+
+def p_ARTICLE(p):
+  """ARTICLE : OARTICLE IN_ART_SECT CARTICLE"""
+
+
+def p_XMLVERSION(p):
+  """XMLPROLOG : XML VERSION ENCODING"""
+
+
+def p_IN_ART_SECT(p):
   """IN_ART_SECT : INFO TITLE CUERPO SECTION
     | INFO CUERPO
     | TITLE CUERPO
     | INFO TITLE CUERPO
     | INFO CUERPO SECTION
-    | TITLE CUERPO SECTION"""
+    | TITLE CUERPO SECTION
+    | CUERPO
+    | CUERPO SECTION"""
 
 
 def p_cuerpo(p):
@@ -694,17 +791,6 @@ def p_cuerpo2(p):
     | COMMENT CUERPO2"""
 
 
-def p_cuerpo3(p):
-  """CUERPO3 : TEXTO
-    | EMPHASIS
-    | LINK
-    | COMMENT
-    | TEXTO CUERPO3
-    | EMPHASIS CUERPO3
-    | LINK CUERPO3
-    | COMMENT CUERPO3"""
-
-
 def p_inf(p):
   """INFO : OINFO IN_INFO CINFO"""
 
@@ -727,22 +813,22 @@ def p_in_inf(p):
 
 
 def p_author(p):
-  '''AUTH : OAUTH IN_AUTH CAUTH'''
+  """AUTH : OAUTH IN_AUTH CAUTH"""
 
 
 def p_in_auth(p):
-  '''IN_AUTH : FN 
-  | SN'''
+  """IN_AUTH : FN
+    | SN"""
 
 
 def p_fn(p):
-  '''FN : OFIRSTNAME CUERPO3 CFIRSTNAME 
-  | OFIRSTNAME CUERPO3 CFIRSTNAME IN_AUTH'''
+  """FN : OFIRSTNAME CUERPO3 CFIRSTNAME
+    | OFIRSTNAME CUERPO3 CFIRSTNAME IN_AUTH"""
 
 
 def p_sn(p):
-  '''SN : OSURNAME CUERPO3 CSURNAME 
-  | OSURNAME CUERPO3 CSURNAME IN_AUTH'''
+  """SN : OSURNAME CUERPO3 CSURNAME
+    | OSURNAME CUERPO3 CSURNAME IN_AUTH"""
 
 
 def p_em(p):
@@ -758,7 +844,7 @@ def p_title(p):
 
 
 def p_in_title(p):
-  """IN_TITLE : TEXTO {print("hello world")}
+  """IN_TITLE : TEXTO
     | EMPHASIS
     | LINK
     | EMAIL
@@ -786,7 +872,7 @@ def p_add(p):
   """ADD : OADD IN_ADD CADD"""
 
 
-def p_inn_add(p):
+def p_IN_ADD(p):
   """IN_ADD : TEXTO
     | STREET
     | CITY
@@ -799,7 +885,6 @@ def p_inn_add(p):
     | STATE IN_ADD
     | PHONE IN_ADD
     | EMAIL IN_ADD
-    | 
     """
 
 
@@ -850,6 +935,17 @@ def p_holder(p):
   """HOLDER : OHOLDER CUERPO3 CHOLDER"""
 
 
+def p_cuerpo3(p):
+  """CUERPO3 : TEXTO
+    | EMPHASIS
+    | LINK
+    | COMMENT
+    | TEXTO CUERPO3
+    | EMPHASIS CUERPO3
+    | LINK CUERPO3
+    | COMMENT CUERPO3"""
+
+
 def p_section(p):
   """SECTION :  SECT
     | SIMPSECT"""
@@ -860,9 +956,9 @@ def p_simpsect(p):
 
 
 def p_in_simpect(p):
-  '''IN_SIMPSECT : INFO CUERPO 
-  | TITLE CUERPO 
-  | INFO TITLE CUERPO'''
+  """IN_SIMPSECT : INFO CUERPO
+    | TITLE CUERPO
+    | INFO TITLE CUERPO"""
 
 
 def p_sect(p):
@@ -918,7 +1014,8 @@ def p_abs(p):
 
 # TABLAS
 def p_table(p):
-  """TABLE : OTABLE TABLE_MO TGROUP CTABLE"""
+  """TABLE : OTABLE TABLE_MO CTABLE
+    | OTABLE TGROUP CTABLE"""
 
 
 def p_table_mo(p):
@@ -930,6 +1027,7 @@ def p_tgroup(p):
   """TGROUP : OTGROUP TBODY CTGROUP TGROUP
     | OTGROUP THEAD TBODY CTGROUP TGROUP
     | OTGROUP TFOOT TBODY CTGROUP TGROUP
+    | OTGROUP THEAD TFOOT TBODY CTGROUP TGROUP
     | OTGROUP TBODY CTGROUP
     | OTGROUP THEAD TBODY CTGROUP
     | OTGROUP TFOOT TBODY CTGROUP
@@ -957,7 +1055,8 @@ def p_fila(p):
 
 
 def p_entry(p):
-  """ENTRY : OENTRY IN_ENTRY CENTRY"""
+  """ENTRY : OENTRY IN_ENTRY CENTRY
+    | OENTRY IN_ENTRY CENTRY ENTRY"""
 
 
 def p_in_entry(p):
@@ -969,19 +1068,21 @@ def p_in_entry(p):
     | MO
     | COMMENT
     | ABS
-    | TEXTO ENTRY
-    | ITEMLIST ENTRY
-    | IMPORTANT ENTRY
-    | PARA ENTRY
-    | SIMPARA ENTRY
-    | MO ENTRY
-    | COMMENT ENTRY
-    | ABS ENTRY"""
+    | TEXTO IN_ENTRY
+    | ITEMLIST IN_ENTRY
+    | IMPORTANT IN_ENTRY
+    | PARA IN_ENTRY
+    | SIMPARA IN_ENTRY
+    | MO IN_ENTRY
+    | COMMENT IN_ENTRY
+    | ABS IN_ENTRY"""
 
 
 def p_entrytbl(p):
   """ENTRYTBL : OENTRYTBL TBODY CENTRYTBL
-    | OENTRYTBL THEAD TBODY CENTRYTBL"""
+    | OENTRYTBL THEAD TBODY CENTRYTBL
+    | OENTRYTBL TBODY CENTRYTBL ENTRYTBL
+    | OENTRYTBL THEAD TBODY CENTRYTBL ENTRYTBL"""
 
 
 # MULTIMEDIA
@@ -1019,15 +1120,36 @@ def p_imgobject(p):
     | OIMGOBJ IMG CIMGOBJ"""
 
 
-parser = yacc.yacc()
+def p_error(p):
+  global valido
+  valido = False
+  linea, columna = nro_linea_columna(p.lexer.lexdata, p)
+  if p:
+    error_message = f"Error de sintaxis: Token inesperado '{p.value}' en línea {linea}, posición {columna}"
+    error_messages.append(
+      error_message)  # Manda a la interface el mensaje de error
+  else:
+    error_message = "Error de sintaxis: Entrada incompleta"
+    error_messages.append(
+      error_message)  # Manda a la interface el mensaje de error
+
+
+def nro_linea_columna(input_text,
+                      token):  # Controla el número de línea y columna
+  last_cr = input_text.rfind("\n", 0, token.lexpos)
+  if last_cr < 0:
+    last_cr = 0
+  linea = input_text.count("\n", 0, token.lexpos) + 1
+  columna = token.lexpos - last_cr
+  return linea, columna
 
 
 class XMLCompiler(QMainWindow):
 
   def __init__(self):
     super().__init__()
-
-    self.setWindowTitle("Compilador de XML")
+    # Ventana Principal
+    self.setWindowTitle("Interprete de XML Docbook Article a HTML")
     self.setGeometry(100, 100, 1280, 800)
 
     # Fondo de pantalla con gradiente de verde
@@ -1047,6 +1169,13 @@ class XMLCompiler(QMainWindow):
     self.text_edit.setPlaceholderText("Escriba su código aquí...")
     self.text_edit.setStyleSheet("background-color: #B6D8A8;font-size: 10pt;")
 
+    # Cuadro de texto para errores
+    self.error_text_edit = QTextEdit(self)
+    self.error_text_edit.setGeometry(860, 400, 350, 350)
+    self.error_text_edit.setStyleSheet(
+      "background-color: white; font-size: 10pt;")
+    self.error_text_edit.setReadOnly(True)
+
     # Botón para cargar un archivo de texto externo
     self.load_button = QPushButton("Cargar Archivo", self)
     self.load_button.setGeometry(860, 100, 350, 60)
@@ -1055,7 +1184,7 @@ class XMLCompiler(QMainWindow):
     self.load_button.setFont(QFont("Arial", 14, QFont.Bold))
 
     # Botón para compilar el texto
-    self.compile_button = QPushButton("Compilar", self)
+    self.compile_button = QPushButton("Traducir", self)
     self.compile_button.setGeometry(860, 200, 350, 60)
     self.compile_button.setStyleSheet(
       "background-color: #A2C8A2; color: black; border-radius: 15px;")
@@ -1073,6 +1202,50 @@ class XMLCompiler(QMainWindow):
     self.compile_button.clicked.connect(self.compile_text)
     self.exit_button.clicked.connect(self.close)
 
+  # La magia de la interface
+  def compile_text(self):
+    global error_messages
+    error_messages = []  # Si hubo un msj anterior, lo borramos
+
+    # Obtener el código XML del cuadro de texto principal
+    xml = self.text_edit.toPlainText()
+
+    # Reiniciar la variable global 'valido', sino el próximo código puede fallar
+    global valido
+    valido = True
+
+    # Creamos al lexer y al parser
+    lexer = lex.lex()
+    parser = yacc.yacc()
+
+    # Ejecutar el análisis léxico y sintáctico
+    lexer.input(xml)
+    parser.parse(
+      xml, lexer=lexer
+    )  # Invocamos al parser, que a la vez ya invoca el lexer, todo intergrado
+
+    # Mostrar los mensajes de error en el cuadro de texto de errores
+    if (
+        not valido
+    ):  # valido es falso cuando hay un error, por lo tanto el not lo vuelve verdadero y entra al 1er bloque del condicional
+      self.error_text_edit.setPlainText("\n".join(error_messages))
+    else:  # Si está todo OK viene acá
+      self.error_text_edit.setPlainText(
+        "Compilación exitosa. No se encontraron errores.")
+
+    # Guardar el contenido en un archivo HTML
+    arch_resultado = "resultado.html"
+    with open(arch_resultado, "w") as file:
+      file.write(html)
+    ubi_arch_resultado = os.path.abspath(arch_resultado)
+    QMessageBox.information(
+      self,
+      "Archivo generado",
+      f"Archivo HTML generado:\n{ubi_arch_resultado}",
+    )
+
+  # Estilo del fondo
+
   def set_background_gradient(self, color1, color2, color3):
     palette = self.palette()
     gradient = QLinearGradient(0, 0, 0, self.height())
@@ -1082,6 +1255,7 @@ class XMLCompiler(QMainWindow):
     palette.setBrush(QPalette.Window, gradient)
     self.setPalette(palette)
 
+  # Carga del archivo
   def load_file(self):
     file_dialog = QFileDialog(self)
     file_dialog.setWindowTitle("Cargar Archivo")
@@ -1094,22 +1268,8 @@ class XMLCompiler(QMainWindow):
       with open(file_path, "r") as file:
         self.text_edit.setPlainText(file.read())
 
-  def compile_text(self):
-    xml_code = self.text_edit.toPlainText()
-    parser.parse(xml_code)
-    self.print_text_edit.append("Código XML compilado:")
-    self.print_text_edit.append(xml_code)
-    self.print_text_edit.append("")  # Agregar una línea en blanco
-    print_lines = xml_code.split("\n")
-    for line in print_lines:
-      if line.startswith("print"):
-        message_box = QMessageBox(self)
-        message_box.setText(
-          line[6:].strip())  # Obtener el texto después de "print"
-        message_box.exec_()
-    # Aquí puedes realizar cualquier otra acción necesaria con el código XML compilado
 
-
+# Crear interface y sus funcionalidades
 if __name__ == "__main__":
   app = QApplication(sys.argv)
   window = XMLCompiler()
